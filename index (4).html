@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baseline - Know your normal. Even in orbit.</title>
+<style>
+:root{--bg:#0F1115;--card:#171A21;--line:#262A33;--p:#7C3AED;--t:#fff;--m:#9AA0AE;--g:#22C55E;--a:#F59E0B;--r:#EF4444}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--t);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 18px 48px}
+header{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;margin-bottom:28px}
+.logo b{font-size:22px;letter-spacing:-.02em}.logo span{display:block;color:var(--m);font-size:13px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--p);margin-right:8px;box-shadow:0 0 12px var(--p)}
+.stats{display:flex;gap:10px}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:13px;color:var(--m)}
+.pill b{color:var(--t)}
+nav{display:flex;gap:6px;overflow-x:auto;margin-bottom:28px;padding-bottom:4px}
+nav button{background:none;border:1px solid transparent;color:var(--m);padding:10px 18px;border-radius:12px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+nav button.on{background:var(--card);border-color:var(--line);color:var(--t)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px}
+h2{font-size:22px;letter-spacing:-.02em;margin-bottom:6px}h3{font-size:16px;margin-bottom:8px}
+.sub{color:var(--m);font-size:14px;margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+label{display:block;font-size:12px;color:var(--m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+input{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--t);border-radius:12px;padding:12px 14px;font:inherit;font-size:16px}
+input:focus{outline:2px solid var(--p);border-color:transparent}
+.row{display:flex;gap:8px}
+.btn{background:var(--p);color:#fff;border:0;border-radius:12px;padding:13px 24px;font:inherit;font-weight:600;cursor:pointer;margin-top:22px}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--m)}
+.btn:hover{filter:brightness(1.1)}
+.map{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:24px}
+@media(max-width:760px){.map{grid-template-columns:1fr}}
+svg.body{width:100%;height:auto;display:block}
+.shape{fill:#1E222B;stroke:#2F3440;stroke-width:1.5}
+.zone{cursor:pointer;stroke-width:2;transition:.3s;fill-opacity:.35}
+.zone:hover{fill-opacity:.6}.zone.sel{stroke:#fff}
+.zone.green{fill:var(--g);stroke:var(--g);filter:drop-shadow(0 0 8px var(--g))}
+.zone.amber{fill:var(--a);stroke:var(--a);filter:drop-shadow(0 0 8px var(--a))}
+.zone.red{fill:var(--r);stroke:var(--r);filter:drop-shadow(0 0 10px var(--r))}
+.zone.sel{stroke:#fff}
+.zl{fill:var(--m);font-size:15px;pointer-events:none}.lead path{stroke:#5B6070;stroke-width:1;fill:none;pointer-events:none}.moon{fill:none;stroke:#fff;stroke-width:2;stroke-linejoin:round;pointer-events:none}
+.map>*{min-width:0}.kv{gap:12px}.kv b{text-align:right}
+@media(max-width:480px){.wrap{padding:16px 12px 40px}.card{padding:16px}h2{font-size:20px}}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--m);margin-top:10px;flex-wrap:wrap}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600}
+.badge.green{background:#22C55E22;color:var(--g)}.badge.amber{background:#F59E0B22;color:var(--a)}.badge.red{background:#EF444422;color:var(--r)}
+.kv{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kv span{color:var(--m)}
+.sec{margin-top:18px}.sec p{color:#C9CDD6;font-size:14px}
+.msg{margin-top:16px;padding:14px;border-radius:12px;background:#7C3AED22;border:1px solid var(--p);font-size:14px}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:16px}
+canvas{width:100%;height:170px;display:block}
+.key{font-size:12px;color:var(--m);display:flex;gap:14px;margin-top:6px}
+.key i{display:inline-block;width:14px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
+footer{margin-top:40px;text-align:center;color:var(--m);font-size:12px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <div class="logo"><b><span class="dot"></span>Baseline</b><span>Know your normal. Even in orbit.</span></div>
+ <div class="stats"><div class="pill">Mission day <b id="mday">-</b></div><div class="pill">Streak <b id="streak">0</b> days</div></div>
+</header>
+<nav id="nav"></nav>
+
+<section id="v-map">
+ <div class="map">
+  <div class="card">
+   <h2>Body map</h2><p class="sub">Tap a zone. Colour shows drift from your own baseline.</p>
+   <svg class="body" viewBox="0 0 440 490" id="svg" role="img" aria-label="Clickable body map">
+    <path class="shape" d="M220,17 C236,17 248,32 248,50 C248,66 240,76 233,80 L232,98 C232,106 258,106 276,114 C292,119 300,134 300,150 C302,190 310,235 316,285 C318,302 302,308 300,292 C294,250 286,205 282,172 L274,168 C272,200 264,230 262,250 C262,265 274,280 274,300 C276,360 268,410 262,452 C264,468 252,474 234,474 C232,470 230,462 230,452 C229,410 226,340 220,305 C214,340 211,410 210,452 C210,462 208,470 206,474 C188,474 176,468 178,452 C172,410 164,360 166,300 C166,280 178,265 178,250 C176,230 168,200 166,168 L158,172 C154,205 146,250 140,292 C138,308 122,302 124,285 C130,235 138,190 140,150 C140,134 148,119 164,114 C182,106 208,106 208,98 L207,80 C200,76 192,66 192,50 C192,32 204,17 220,17Z"/>
+    <g class="lead"><path d="M240 38L326 30M251 150L326 150M250 225L326 225M134 240L98 240M130 73L130 82"/></g>
+    <ellipse class="zone" data-z="brain" cx="220" cy="44" rx="20" ry="22"/>
+    <ellipse class="zone" data-z="heart" cx="236" cy="150" rx="15" ry="17"/>
+    <ellipse class="zone" data-z="metabolism" cx="220" cy="225" rx="30" ry="22"/>
+    <ellipse class="zone" data-z="bones" cx="298" cy="215" rx="7" ry="62" transform="rotate(-9 298 215)"/>
+    <ellipse class="zone" data-z="bones" cx="142" cy="215" rx="7" ry="62" transform="rotate(9 142 215)"/>
+    <ellipse class="zone" data-z="bones" cx="247" cy="385" rx="15" ry="62"/>
+    <ellipse class="zone" data-z="bones" cx="193" cy="385" rx="15" ry="62"/>
+    <circle class="zone" data-z="sleep" cx="130" cy="52" r="21"/>
+    <path class="moon" d="M136 43A11 11 0 1 0 136 61A8.5 8.5 0 1 1 136 43Z"/>
+    <text class="zl" x="332" y="35">Brain</text><text class="zl" x="332" y="155">Heart</text><text class="zl" x="332" y="230">Metabolism</text>
+    <text class="zl" x="92" y="237" text-anchor="end">Bones &amp;</text><text class="zl" x="92" y="255" text-anchor="end">muscles</text>
+    <text class="zl" x="130" y="100" text-anchor="middle">Sleep</text>
+   </svg>
+   <div class="legend"><span><i style="background:var(--g)"></i>Normal for you</span><span><i style="background:var(--a)"></i>Watch it</span><span><i style="background:var(--r)"></i>Act now</span></div>
+  </div>
+  <div class="card" id="panel"></div>
+ </div>
+</section>
+
+<section id="v-in" class="hide"><div class="card">
+ <h2>Daily check-in</h2><p class="sub">Today's readings. Takes under 30 seconds. Saving again today updates the entry.</p>
+ <form id="fin" onsubmit="return false"></form>
+ <button class="btn" id="save">Save check-in</button><div id="inmsg"></div>
+</div></section>
+
+<section id="v-tr" class="hide"><h2>Trends</h2><p class="sub">Last 7 check-ins. Dashed line is your own Earth baseline.</p><div class="charts" id="charts"></div></section>
+
+<section id="v-base" class="hide"><div class="card">
+ <h2>Your Earth baseline</h2><p class="sub">Recorded once, before launch. Every daily reading is compared against these numbers, not a textbook range.</p>
+ <form id="fbase" onsubmit="return false"></form>
+ <button class="btn" id="sbase">Save baseline</button><div id="bmsg"></div>
+</div></section>
+
+<section id="v-guide" class="hide"><div class="card"><h2>How to measure</h2><p class="sub">Measure at the same time and in the same position each day, so drift means something.</p><div id="guide"></div></div></section>
+
+<div style="text-align:center;margin-top:28px"><button class="btn ghost" id="reset">Reset demo</button></div>
+<footer>Prototype for NASA Space Apps Challenge 2026. Not a medical device.</footer>
+</div>
+
+<script>
+const IND={
+ hr:{n:"Heart rate",u:"bpm",step:1,thr:[10,20],c:"#7C3AED",how:"Sit still for 5 minutes. Place two fingers on your wrist and count beats for 30 seconds, then double it. Or use a wearable at rest."},
+ sys:{n:"Systolic BP",u:"mmHg",step:1,thr:[8,15],c:"#7C3AED",how:"Sit with back supported and feet flat, arm at heart level. Rest 5 minutes, then take two cuff readings a minute apart. The cuff gives two numbers, systolic over diastolic, for example 118/76."},
+ dia:{n:"Diastolic BP",u:"mmHg",step:1,thr:[8,15],c:"#C4B5FD",how:"Same reading as systolic. Record both numbers from the same measurement."},
+ temp:{n:"Body temperature",u:"C",step:.1,thr:[.8,1.4],c:"#7C3AED",how:"Use an oral or ear thermometer. Wait 15 minutes after exercise or a hot drink."},
+ glu:{n:"Blood sugar",u:"mg/dL",step:1,thr:[12,25],c:"#7C3AED",how:"Fingerstick with a glucose meter, ideally fasting in the morning. Wash and dry hands first."},
+ sleep:{n:"Sleep",u:"hours",step:.1,thr:[15,30],c:"#7C3AED",how:"Record total time actually asleep last night, not time in bed."},
+ mood:{n:"Mood",u:"1 to 5",step:1,thr:[25,45],c:"#7C3AED",how:"1 is very low, 5 is very good. Go with your first gut answer."}
+};
+const KEYS=Object.keys(IND);
+const DEFBASE={hr:62,sys:118,dia:76,temp:36.6,glu:90,sleep:7.5,mood:4};
+const ZONES={
+ heart:{n:"Heart",k:["hr","sys","dia"],what:"Pumps blood around the body and responds quickly to stress, fluid changes and fitness.",space:"In microgravity, body fluids shift toward the head and the cardiovascular system adapts, a process NASA's Human Research Program studies as cardiovascular deconditioning.",act:"Rest, hydrate, and keep up the scheduled exercise. Recheck in a few hours."},
+ brain:{n:"Brain and mood",k:["mood"],what:"Controls attention, decisions and mood, and is sensitive to stress, isolation and poor sleep.",space:"The headward fluid shift can affect the head and eyes, and isolation, confinement and workload are recognised behavioural health risks on long missions.",act:"Talk to crew or ground support, keep routines, and schedule real downtime."},
+ bones:{n:"Bones and muscles",k:["hr"],what:"Hold you up and move you. Both rely on load to stay strong. This zone uses resting heart rate as a rough recovery proxy.",space:"Without gravity's load, astronauts can lose bone density in weight-bearing bones, and muscles weaken. NASA crews exercise about two hours a day to counter this.",act:"Do not skip resistive exercise. Report unusual pain or fatigue."},
+ sleep:{n:"Sleep",k:["sleep"],what:"Restores the brain and body and keeps mood and focus steady.",space:"The ISS orbits Earth about every 90 minutes, so the crew sees many sunrises and sunsets each day. Light cues for the body clock are disrupted.",act:"Block light in the sleep area, keep a fixed sleep window, and avoid screens before bed."},
+ metabolism:{n:"Metabolism",k:["glu","temp"],what:"How the body turns food into energy. Blood sugar and temperature are quick signals.",space:"Spaceflight changes diet, activity and body fluids, and the body's regulation of energy and temperature has to adapt.",act:"Keep meals regular, stay hydrated, and recheck your reading."}
+};
+const $=s=>document.querySelector(s);
+const iso=d=>{const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")};
+const today=()=>iso(new Date());
+const dAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return iso(d)};
+let S;
+function demo(){
+ const H=[62,62,63,62,63,64,63],SY=[118,119,121,123,126,128,130],DI=[76,76,77,77,78,78,78],T=[36.6,36.6,36.6,36.7,36.6,36.7,36.6],G=[90,91,89,92,91,93,92],SL=[7.5,7.4,7.2,6.8,6.0,5.2,4.5],M=[4,4,5,4,4,4,4];
+ return{base:{...DEFBASE},logs:H.map((h,i)=>({date:dAgo(6-i),hr:h,sys:SY[i],dia:DI[i],temp:T[i],glu:G[i],sleep:SL[i],mood:M[i]}))};
+}
+function load(){try{S=JSON.parse(localStorage.getItem("baseline.v2"))}catch(e){}if(!S||!S.logs)S=demo()}
+function save(){try{localStorage.setItem("baseline.v2",JSON.stringify(S))}catch(e){}}
+const drift=(k,v)=>(v-S.base[k])/S.base[k]*100;
+const DOWN_ONLY={sleep:1,mood:1};
+function stat(k,v){const sd=drift(k,v),d=DOWN_ONLY[k]?Math.max(0,-sd):Math.abs(sd),t=IND[k].thr;return d>=t[1]?2:d>=t[0]?1:0}
+const NAMES=["green","amber","red"];
+const latest=()=>[...S.logs].sort((a,b)=>a.date<b.date?-1:1).slice(-1)[0];
+function zoneStat(z){const l=latest();if(!l)return 0;return Math.max(...ZONES[z].k.map(k=>stat(k,l[k])))}
+function streak(){const set=new Set(S.logs.map(l=>l.date));let n=0,i=set.has(today())?0:1;while(set.has(dAgo(i))){n++;i++}return n}
+function head(){const logs=S.logs.map(l=>l.date).sort();$("#streak").textContent=streak();
+ $("#mday").textContent=logs.length?Math.round((new Date(today())-new Date(logs[0]))/864e5)+1:"-"}
+function paintMap(){document.querySelectorAll(".zone").forEach(e=>{e.classList.remove("green","amber","red");e.classList.add(NAMES[zoneStat(e.dataset.z)])})}
+let sel="sleep",flagged={};
+function panel(){
+ const z=ZONES[sel],s=zoneStat(sel),l=latest(),nm=NAMES[s];
+ const lab=["Normal for you","Watch it","Act now"][s];
+ document.querySelectorAll(".zone").forEach(e=>e.classList.toggle("sel",e.dataset.z===sel));
+ let rows=l?z.k.map(k=>{const d=drift(k,l[k]);return `<div class="kv"><span>${IND[k].n}</span><b>${l[k]} ${IND[k].u} <small style="color:var(--m)">(${d>=0?"+":""}${d.toFixed(1)}% vs ${S.base[k]})</small></b></div>`}).join(""):"<p class='sub'>No check-ins yet.</p>";
+ $("#panel").innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>${z.n}</h2><span class="badge ${nm}">${lab}</span></div>${rows}
+ <div class="sec"><h3>What it does</h3><p>${z.what}</p></div>
+ <div class="sec"><h3>How space affects it</h3><p>${z.space}</p></div>
+ <div class="sec"><h3>What to do now</h3><p>${z.act}</p></div>
+ ${s===2?`<button class="btn" id="flag">Flag flight surgeon</button>`:""}
+ ${flagged[sel]&&s===2?`<div class="msg">Flag recorded for the flight surgeon: ${z.n} is more than the red threshold away from your baseline. This is a simulation, nothing was actually sent.</div>`:""}`;
+ const f=$("#flag");if(f)f.onclick=()=>{flagged[sel]=1;panel()};
+}
+function forms(){
+ const mk=(id,vals)=>$(id).innerHTML=`<div class="grid">`+KEYS.map(k=>`<div><label for="${id.slice(1)}-${k}">${IND[k].n} (${IND[k].u})</label><input id="${id.slice(1)}-${k}" type="number" inputmode="decimal" step="${IND[k].step}" value="${vals[k]}"></div>`).join("")+`</div>`;
+ mk("#fbase",S.base);const l=latest()||S.base;mk("#fin",l);
+}
+function readForm(id){const o={};for(const k of KEYS){const v=parseFloat($(id+"-"+k).value);if(isNaN(v))return null;o[k]=v}return o}
+function charts(){
+ const logs=[...S.logs].sort((a,b)=>a.date<b.date?-1:1).slice(-7);
+ const defs=[["hr",["hr"]],["bp",["sys","dia"]],["temp",["temp"]],["glu",["glu"]],["sleep",["sleep"]],["mood",["mood"]]];
+ $("#charts").innerHTML=defs.map(([id,ks])=>`<div class="card"><h3>${ks.length>1?"Blood pressure (mmHg)":IND[ks[0]].n+" ("+IND[ks[0]].u+")"}</h3><canvas id="c-${id}"></canvas><div class="key">${ks.map(k=>`<span><i style="border-color:${IND[k].c}"></i>${ks.length>1?IND[k].n:"Reading"}</span>`).join("")}<span><i style="border-color:#9AA0AE;border-top-style:dashed"></i>Your baseline</span></div></div>`).join("");
+ defs.forEach(([id,ks])=>draw($("#c-"+id),ks,logs,id));
+}
+const CFG={hr:{r:[50,90],s:10,dp:0},bp:{r:[60,150],s:30,dp:0},temp:{r:[35.5,38],s:.5,dp:1},glu:{r:[70,130],s:10,dp:0},sleep:{r:[0,10],s:2,dp:0},mood:{r:[1,5],s:1,dp:0}};
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const fmtDate=d=>{const p=d.split("-");return MON[+p[1]-1]+" "+(+p[2])};
+function draw(cv,ks,logs,id){
+ const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;cv.width=w*dpr;cv.height=h*dpr;
+ const c=cv.getContext("2d");c.scale(dpr,dpr);c.font="11px system-ui";
+ const cf=CFG[id],vals=[];ks.forEach(k=>{logs.forEach(l=>vals.push(l[k]));vals.push(S.base[k])});
+ const mn=Math.floor(Math.min(cf.r[0],...vals)/cf.s+1e-9)*cf.s,mx=Math.ceil(Math.max(cf.r[1],...vals)/cf.s-1e-9)*cf.s;
+ const L=38,R=18,T=12,B=28,n=logs.length,X=i=>L+(n>1?i/(n-1):.5)*(w-L-R),Y=v=>T+(1-(v-mn)/(mx-mn))*(h-T-B);
+ c.strokeStyle="#262A33";c.fillStyle="#9AA0AE";c.lineWidth=1;c.textAlign="left";
+ const steps=Math.round((mx-mn)/cf.s);
+ for(let i=0;i<=steps;i++){const v=mn+i*cf.s,y=Y(v);c.beginPath();c.moveTo(L,y);c.lineTo(w-R,y);c.stroke();c.fillText(v.toFixed(cf.dp),2,y+4)}
+ const labs=logs.map(l=>fmtDate(l.date)),tw=Math.max(...labs.map(t=>c.measureText(t).width)),gap=n>1?(w-L-R)/(n-1):99,every=gap>=tw+8?1:2;
+ labs.forEach((t,i)=>{if((n-1-i)%every)return;const x=Math.min(Math.max(X(i)-c.measureText(t).width/2,0),w-c.measureText(t).width-2);c.fillText(t,x,h-8)});
+ ks.forEach(k=>{
+  c.setLineDash([5,4]);c.strokeStyle="#9AA0AE";c.beginPath();c.moveTo(L,Y(S.base[k]));c.lineTo(w-R,Y(S.base[k]));c.stroke();c.setLineDash([]);
+  c.strokeStyle=IND[k].c;c.lineWidth=2.5;c.beginPath();logs.forEach((l,i)=>i?c.lineTo(X(i),Y(l[k])):c.moveTo(X(i),Y(l[k])));c.stroke();
+  logs.forEach((l,i)=>{c.fillStyle=["#22C55E","#F59E0B","#EF4444"][stat(k,l[k])];c.beginPath();c.arc(X(i),Y(l[k]),4,0,7);c.fill()});
+ });
+}
+function guide(){$("#guide").innerHTML=KEYS.filter(k=>k!=="dia").map(k=>`<div class="kv" style="display:block"><b>${k==="sys"?"Blood pressure":IND[k].n}</b><div style="color:#C9CDD6;margin-top:2px">${IND[k].how}</div></div>`).join("")}
+const VIEWS=[["map","Body map"],["in","Check-in"],["tr","Trends"],["base","Baseline"],["guide","How to measure"]];
+function show(id){VIEWS.forEach(([v])=>$("#v-"+v).classList.toggle("hide",v!==id));
+ document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===id));
+ if(id==="tr")charts();if(id==="map"){paintMap();panel()}}
+function refresh(){head();forms();paintMap();panel();guide()}
+$("#nav").innerHTML=VIEWS.map(([v,n])=>`<button data-v="${v}">${n}</button>`).join("");
+$("#nav").onclick=e=>{if(e.target.dataset.v)show(e.target.dataset.v)};
+document.querySelectorAll(".zone").forEach(e=>e.onclick=()=>{sel=e.dataset.z;panel()});
+$("#save").onclick=()=>{const o=readForm("#fin");if(!o){$("#inmsg").innerHTML='<div class="msg">Fill in every field.</div>';return}
+ S.logs=S.logs.filter(l=>l.date!==today());S.logs.push({date:today(),...o});save();head();paintMap();flagged={};panel();
+ $("#inmsg").innerHTML=`<div class="msg">Saved. Streak: ${streak()} days. Open the body map to see how you compare to your baseline.</div>`};
+$("#sbase").onclick=()=>{const o=readForm("#fbase");if(!o){$("#bmsg").innerHTML='<div class="msg">Fill in every field.</div>';return}
+ S.base=o;save();paintMap();panel();$("#bmsg").innerHTML='<div class="msg">Baseline saved. All drift is now measured against these values.</div>'};
+$("#reset").onclick=()=>{if(!confirm("Reset to the demo data?"))return;try{localStorage.removeItem("baseline.v2")}catch(e){}S=demo();save();flagged={};refresh();show("map")};
+window.addEventListener("resize",()=>{if(!$("#v-tr").classList.contains("hide"))charts()});
+load();save();refresh();show("map");
+</script>
+</body>
+</html>
